@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光污染 - 看不见的环境危机</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --bg: #fdf6ee;
+            --bg-warm: #fef9f3;
+            --card-bg: rgba(255, 248, 238, 0.72);
+            --card-bg-hover: rgba(255, 244, 230, 0.85);
+            --text: #3d2e1c;
+            --text-secondary: #6b5840;
+            --text-muted: #8c7358;
+            --border: rgba(180, 145, 110, 0.35);
+            --border-strong: rgba(160, 120, 85, 0.5);
+            --shadow-sm: 0 1px 3px rgba(100, 70, 30, 0.06), 0 1px 2px rgba(100, 70, 30, 0.04);
+            --shadow-md: 0 4px 16px rgba(100, 70, 30, 0.08), 0 2px 6px rgba(100, 70, 30, 0.05);
+            --shadow-lg: 0 8px 32px rgba(100, 70, 30, 0.12), 0 4px 12px rgba(100, 70, 30, 0.06);
+            --accent: #c8843c;
+            --accent-warm: #d4914a;
+            --accent-light: #e8b878;
+            --accent-glow: #f0c888;
+            --ocean: #2c5f7c;
+            --ocean-light: #3a7a9e;
+            --danger: #c05a3a;
+            --radius-sm: 10px;
+            --radius: 16px;
+            --radius-lg: 22px;
+            --radius-xl: 28px;
+            --font-serif: 'Georgia', 'Noto Serif SC', 'STSong', 'Songti SC', 'SimSun', serif;
+            --font-sans: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-tap-highlight-color: transparent;
+            font-size: 15px;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            min-height: 100vh;
+            background-image:
+                radial-gradient(ellipse at 50% 0%, rgba(220, 170, 110, 0.15) 0%, transparent 65%),
+                radial-gradient(ellipse at 85% 60%, rgba(180, 140, 100, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 15% 80%, rgba(200, 150, 100, 0.06) 0%, transparent 50%);
+            background-attachment: fixed;
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+
+        .container {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 14px 16px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 16px 8px;
+            position: relative;
+        }
+        .header .icon-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+        .header .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-glow);
+            box-shadow: 0 0 12px rgba(220, 150, 80, 0.7);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+        .header .dot:nth-child(2) {
+            animation-delay: 0.4s;
+            width: 10px;
+            height: 10px;
+            background: var(--accent-warm);
+        }
+        .header .dot:nth-child(3) {
+            animation-delay: 0.8s;
+        }
+        @keyframes pulse-dot {
+            0%,100% {transform: scale(1);opacity: 0.7;}
+            50% {transform: scale(1.8);opacity: 1;}
+        }
+        .header h1 {
+            font-family: var(--font-serif);
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3d2a14;
+            letter-spacing: 0.03em;
+            margin: 0;
+            line-height: 1.3;
+        }
+        .header .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            letter-spacing: 0.02em;
+            font-weight: 400;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 16px;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--border-strong);
+            background: var(--card-bg-hover);
+        }
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(220, 170, 120, 0.3), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .card:hover::after {opacity: 1;}
+        .card h2 {
+            font-family: var(--font-serif);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #3d2a14;
+            margin-bottom: 10px;
+            letter-spacing: 0.02em;
+        }
+        .card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #4a3520;
+            margin-bottom: 6px;
+        }
+        .card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.7;
+            margin-bottom: 8px;
+        }
+        .card p:last-child {margin-bottom: 0;}
+
+        .model-card {
+            padding: 10px 10px 14px;
+            border-radius: var(--radius-lg);
+            background: rgba(255, 246, 234, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-md);
+        }
+        .model-card .model-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 8px 8px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .model-card .model-title {
+            font-family: var(--font-serif);
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #3d2a14;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .model-card .model-title .badge {
+            font-size: 0.7rem;
+            background: rgba(200, 130, 60, 0.15);
+            color: #8c5c30;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            border: 1px solid rgba(180, 120, 70, 0.25);
+        }
+        .model-card .model-controls {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .model-card .btn-sm {
+            font-size: 0.75rem;
+            padding: 7px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: rgba(255, 248, 238, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            white-space: nowrap;
+            font-family: var(--font-sans);
+            letter-spacing: 0.02em;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .model-card .btn-sm:active {transform: scale(0.95);}
+        .model-card .btn-sm.active {
+            background: rgba(200, 130, 60, 0.2);
+            border-color: rgba(180, 110, 50, 0.55);
+            color: #6b3a18;
+            font-weight: 600;
+            box-shadow: 0 0 0 3px rgba(200, 130, 60, 0.08);
+        }
+        .model-card canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: var(--radius-sm);
+            cursor: grab;
+            -webkit-tap-highlight-color: transparent;
+            background: #2a2520;
+            touch-action: none;
+        }
+        .model-card canvas:active {
+            cursor: grabbing;
+        }
+        .model-card .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 10px 8px 2px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            justify-content: center;
+        }
+        .model-card .legend span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .model-card .legend .dot-leg {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .bento-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .bento-grid .card {padding: 16px 14px;}
+        .bento-grid .card.span-2 {grid-column: span 2;}
+        .stat-num {
+            font-family: var(--font-serif);
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #5a3520;
+            line-height: 1;
+            letter-spacing: 0.01em;
+        }
+        .stat-unit {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-left: 2px;
+        }
+        .stat-label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+        .highlight-tag {
+            display: inline-block;
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 14px;
+            background: rgba(210, 140, 80, 0.12);
+            color: #7a4e28;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            border: 1px solid rgba(180, 120, 70, 0.2);
+            margin-bottom: 6px;
+        }
+        .icon-em {
+            font-size: 1.6rem;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .impact-list {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .impact-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 245, 232, 0.5);
+            border: 1px solid rgba(180, 145, 110, 0.18);
+            transition: var(--transition);
+        }
+        .impact-list li:hover {
+            background: rgba(255, 240, 222, 0.7);
+            border-color: var(--border);
+        }
+        .impact-list .bullet {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            margin-top: 1px;
+        }
+        .bullet.warm {
+            background: rgba(210, 130, 60, 0.2);
+            color: #8c5020;
+        }
+        .bullet.ocean {
+            background: rgba(44, 95, 124, 0.2);
+            color: #1e5068;
+        }
+        .bullet.danger {
+            background: rgba(190, 80, 50, 0.18);
+            color: #8c3020;
+        }
+
+        .quote-block {
+            border-left: 3px solid var(--accent-light);
+            padding: 10px 14px;
+            margin: 10px 0;
+            background: rgba(240, 220, 190, 0.3);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            font-style: italic;
+            color: #5a3e28;
+            font-size: 0.85rem;
+            letter-spacing: 0.02em;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px 10px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 0.03em;
+            border-top: 1px solid rgba(180, 145, 110, 0.2);
+            margin-top: 8px;
+        }
+        .footer .divider-dot {
+            display: inline-block;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent-light);
+            margin: 0 8px;
+            vertical-align: middle;
+        }
+
+        /* 新增：文字摺疊功能 */
+        .card.collapsible {
+            position: relative;
+        }
+        .card.collapsible .collapse-btn {
+            display: none;
+            width: 100%;
+            margin-top: 12px;
+            padding: 8px 16px;
+            background: rgba(200, 130, 60, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .card.collapsible .collapse-btn:hover {
+            background: rgba(200, 130, 60, 0.2);
+        }
+        .card.collapsible .collapse-content {
+            max-height: none;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .card.collapsible.collapsed .collapse-content {
+            max-height: 180px;
+        }
+        .card.collapsible.collapsed::after {
+            content: '';
+            position: absolute;
+            bottom: 50px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(transparent, var(--card-bg));
+            pointer-events: none;
+        }
+        .card.collapsible .collapse-btn .arrow {
+            display: inline-block;
+            margin-left: 4px;
+            transition: transform 0.3s;
+        }
+        .card.collapsible.collapsed .collapse-btn .arrow {
+            transform: rotate(0deg);
+        }
+        .card.collapsible:not(.collapsed) .collapse-btn .arrow {
+            transform: rotate(180deg);
+        }
+
+        /* 網格布局優化 */
+        .compact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+        }
+        .compact-grid .card {
+            padding: 14px 12px;
+        }
+
+        @media (min-width: 640px) {
+            .container {
+                max-width: 680px;
+                padding: 18px 24px 40px;
+                gap: 18px;
+            }
+            .bento-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 14px;
+            }
+            .bento-grid .card.span-2 {grid-column: span 2;}
+            .bento-grid .card.span-3 {grid-column: span 3;}
+            .header h1 {font-size: 2.4rem;}
+            .card {padding: 22px 20px;}
+            .card p {font-size: 0.95rem;}
+            .card.collapsible.collapsed .collapse-content {
+                max-height: 200px;
+            }
+        }
+
+        @media (min-width: 900px) {
+            .container {
+                max-width: 780px;
+                gap: 20px;
+            }
+            .bento-grid {
+                grid-template-columns: 1fr 1fr 1fr 1fr;
+                gap: 16px;
+            }
+            .bento-grid .card.span-2 {grid-column: span 2;}
+            .bento-grid .card.span-3 {grid-column: span 3;}
+            .bento-grid .card.span-4 {grid-column: span 4;}
+            .header h1 {font-size: 2.6rem;}
+        }
+
+        /* 響應式文字處理 */
+        @media (max-width: 480px) {
+            .impact-list li {
+                padding: 6px 10px;
+                font-size: 0.85rem;
+            }
+            .impact-list li p {
+                font-size: 0.78rem;
+            }
+            .card h2 {
+                font-size: 1.1rem;
+            }
+            .stat-num {
+                font-size: 1.8rem;
+            }
+            .bento-grid {
+                gap: 10px;
+            }
+            .bento-grid .card {
+                padding: 12px 10px;
+            }
+            .card.collapsible.collapsed .collapse-content {
+                max-height: 160px;
+            }
+            .card.collapsible .collapse-btn {
+                display: block;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1e1812;
+                --bg-warm: #231c15;
+                --card-bg: rgba(40, 32, 24, 0.75);
+                --card-bg-hover: rgba(48, 38, 28, 0.85);
+                --text: #e8dcc8;
+                --text-secondary: #c8b898;
+                --text-muted: #a89478;
+                --border: rgba(140, 110, 80, 0.35);
+                --border-strong: rgba(160, 125, 90, 0.5);
+                --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.15);
+                --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.2);
+                --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.25);
+            }
+            .model-card canvas {background: #1a1815;}
+            .card h2,.card h3,.header h1 {color: #f0e0c8;}
+            .stat-num {color: #e0c8a0;}
+            .highlight-tag {
+                background: rgba(210, 150, 90, 0.18);
+                color: #d4b080;
+            }
+            .impact-list li {
+                background: rgba(35, 28, 20, 0.6);
+                border-color: rgba(120, 95, 70, 0.25);
+            }
+            .impact-list li:hover {background: rgba(45, 35, 24, 0.75);}
+            .quote-block {
+                background: rgba(50, 38, 24, 0.5);
+                color: #d4b898;
+            }
+            .btn-sm {
+                background: rgba(35, 28, 20, 0.7) !important;
+                color: #c8b898 !important;
+            }
+            .btn-sm.active {
+                background: rgba(180, 120, 60, 0.3) !important;
+                color: #e8c898 !important;
+            }
+            .card.collapsible.collapsed::after {
+                background: linear-gradient(transparent, var(--card-bg));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="icon-row">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+            <h1>光污染</h1>
+            <p class="subtitle">看不见的环境危机 · 正在蔓延的"光尘"</p>
+        </header>
+
+        <div class="model-card">
+            <div class="model-header">
+                <div class="model-title">
+                    3D 海岸生態模型
+                    <span class="badge">交互式</span>
+                </div>
+                <div class="model-controls">
+                    <button class="btn-sm active" data-mode="normal">🌆 現狀</button>
+                    <button class="btn-sm" data-mode="severe">⚠️ 加劇</button>
+                    <button class="btn-sm" data-mode="mitigated">🌙 緩解</button>
+                </div>
+            </div>
+            <canvas id="scene3d" width="460" height="340"></canvas>
+            <div class="legend">
+                <span><span class="dot-leg" style="background:#4a3728;"></span> 陸地</span>
+                <span><span class="dot-leg" style="background:#d4c4a0;"></span> 沙灘</span>
+                <span><span class="dot-leg" style="background:#2c5f7c;"></span> 海洋</span>
+                <span><span class="dot-leg" style="background:#e8b870;"></span> 城市燈光</span>
+                <span><span class="dot-leg" style="background:#4a9d5a;"></span> 植被</span>
+                <span><span class="dot-leg" style="background:#228b7d;"></span> 海龜</span>
+            </div>
+        </div>
+
+        <div class="bento-grid">
+            <div class="card">
+                <span class="highlight-tag">🌍 全球</span>
+                <div class="stat-num">83<span class="stat-unit">%</span></div>
+                <div class="stat-label">世界人口生活在光污染天空下</div>
+            </div>
+            <div class="card">
+                <span class="highlight-tag">📈 增速</span>
+                <div class="stat-num">2.2<span class="stat-unit">%/年</span></div>
+                <div class="stat-label">全球光污染年均增长率</div>
+            </div>
+            <div class="card span-2">
+                <span class="highlight-tag">🔭 天文影响</span>
+                <div class="stat-num" style="font-size:1.5rem;">1/3</div>
+                <div class="stat-label">全球三分之一人口无法看到银河</div>
+                <p style="margin-top:6px;font-size:0.8rem;">在光污染严重的城市，肉眼可见的星星从自然的2500+颗锐减至不足100颗。</p>
+            </div>
+            <div class="card">
+                <span class="highlight-tag">🏙️ 城市</span>
+                <div class="stat-num">99<span class="stat-unit">%</span></div>
+                <div class="stat-label">欧美都市居民看不到自然夜空</div>
+            </div>
+            <div class="card">
+                <span class="highlight-tag">🐢 海龟</span>
+                <div class="stat-num">~50<span class="stat-unit">%</span></div>
+                <div class="stat-label">沿海雏龟因光污染迷失方向</div>
+            </div>
+        </div>
+
+        <div class="card collapsible collapsed" data-collapsible>
+            <h2>什么是光污染？</h2>
+            <div class="collapse-content">
+                <p>光污染是指人类过度使用人造户外光源所导致的环境退化现象。它包括<strong>天空辉光</strong>、<strong>眩光</strong>、<strong>光侵入</strong>和<strong>杂乱光</strong>。</p>
+                <p>光污染不仅浪费能源，更严重干扰了数百万年来地球生物赖以生存的自然光周期。它被联合国教科文组织列为<strong>新兴全球环境威胁</strong>之一。</p>
+                <p>隨著城市化進程加速，光污染正在以每年超過2%的速度蔓延，影響著全球生態系統的平衡。從深海的浮游生物到高空的遷徙鳥類，無一倖免於這無形的環境威脅。</p>
+                <p>在現代都市中，過度照明已成為常態。商業霓虹、街道燈光、建築泛光照明等，共同構成了遮蔽星空的「光穹頂」，讓我們逐漸失去了與宇宙的視覺連接。</p>
+            </div>
+            <button class="collapse-btn">展開更多 <span class="arrow">▼</span></button>
+        </div>
+
+        <div class="card collapsible collapsed" data-collapsible>
+            <h2>🏘️ 对居民区的影响</h2>
+            <div class="collapse-content">
+                <ul class="impact-list">
+                    <li>
+                        <span class="bullet warm">🛌</span>
+                        <div>
+                            <strong>睡眠障碍与褪黑素抑制</strong>
+                            <p style="margin:3px 0 0;font-size:0.82rem;">夜间光照抑制褪黑素分泌，卧室临街住户失眠率高出40%。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="bullet warm">🧠</span>
+                        <div>
+                            <strong>昼夜节律紊乱</strong>
+                            <p style="margin:3px 0 0;font-size:0.82rem;">打乱人体生物钟，提升抑郁、焦虑等心理问题发病概率。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="bullet warm">❤️</span>
+                        <div>
+                            <strong>心血管疾病风险上升</strong>
+                            <p style="margin:3px 0 0;font-size:0.82rem;">长期光暴露与高血压、肥胖、代谢综合征高度相关。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="bullet warm">👁️</span>
+                        <div>
+                            <strong>眩光视觉危害</strong>
+                            <p style="margin:3px 0 0;font-size:0.82rem;">强光眩光降低夜间视野，增加交通出行安全隐患。</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <button class="collapse-btn">展開更多 <span class="arrow">▼</span></button>
+        </div>
+
+        <div class="card collapsible collapsed" data-collapsible>
+            <h2>🌊 对海洋生态系统的冲击</h2>
+            <div class="collapse-content">
+                <ul class="impact-list">
+                    <li>
+                        <span class="bullet ocean">🪸</span>
+                        <div>
+                            <strong>珊瑚繁殖周期错乱</strong>
+                            <p style="margin:3px 0 0;font-size:0.82rem;">打乱珊瑚月相同步产卵规律，大幅降低受精成功率。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="bullet ocean">🦐</span>
+                        <div>
+                            <strong>浮游生物迁移受阻</strong>
+                            <p style="margin:3px 0 0;font-size:0.82rem;">打断海洋基础食物链，引发整片海域生态失衡。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="bullet ocean">🐟</span>
+                        <div>
+                            <strong>鱼类栖息行为改变</strong>
+                            <p style="margin:3px 0 0;font-size:0.82rem;">灯光干扰鱼类觅食与洄游，破坏海域生物种群平衡。</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <button class="collapse-btn">展開更多 <span class="arrow">▼</span></button>
+        </div>
+
+        <div class="card collapsible collapsed" data-collapsible style="border-left: 3px solid #c07a40;">
+            <h2>🐢 海龟：光污染下的迷途生命</h2>
+            <div class="collapse-content">
+                <p>海龟依靠月光海面反光辨别大海方向，海岸人造灯光会彻底误导新生小海龟。</p>
+                <ul class="impact-list">
+                    <li>
+                        <span class="bullet danger">🐣</span>
+                        <div>
+                            <strong>雏龟大规模迷路</strong>
+                            <p style="margin:3px 0 0;font-size:0.82rem;">错爬向内陆，脱水、车祸、天敌捕食造成大量幼龟死亡。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="bullet danger">🏖️</span>
+                        <div>
+                            <strong>母龟放弃产卵</strong>
+                            <p style="margin:3px 0 0;font-size:0.82rem;">沙滩过亮让雌龟不敢上岸，直接放弃筑巢繁衍。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="bullet danger">🧬</span>
+                        <div>
+                            <strong>物种种群持续衰退</strong>
+                            <p style="margin:3px 0 0;font-size:0.82rem;">全球多数海龟濒临濒危，光污染加速物种危机。</p>
+                        </div>
+                    </li>
+                </ul>
+                <div class="quote-block">
+                    "每一只迷失方向的雏龟，都是一个未能回归海洋的生命。"
+                </div>
+                <p style="font-size:0.82rem;color:var(--text-muted);">💡 保护方式：海岸使用低暖光灯具、繁殖期关闭沿岸多余照明。</p>
+            </div>
+            <button class="collapse-btn">展開更多 <span class="arrow">▼</span></button>
+        </div>
+
+        <div class="bento-grid">
+            <div class="card">
+                <span class="icon-em">🐦</span>
+                <h3>鸟类迁徙混乱</h3>
+                <p style="font-size:0.82rem;">候鸟靠星空导航，城市强光使其迷路，每年大量鸟类撞击高楼死亡。</p>
+            </div>
+            <div class="card">
+                <span class="icon-em">🦋</span>
+                <h3>昆虫数量锐减</h3>
+                <p style="font-size:0.82rem;">夜行昆虫被灯光困住耗尽体力死亡，严重影响自然授粉与生态循环。</p>
+            </div>
+            <div class="card span-2">
+                <span class="icon-em">🌿</span>
+                <h3>植物生长节律紊乱</h3>
+                <p style="font-size:0.82rem;">路灯周边树木秋冬不落叶、春天提前发芽，极易遭受冻害损伤。</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🌙 我们可以做什么</h2>
+            <ul class="impact-list">
+                <li><span class="bullet warm">💡</span><div>使用遮光灯具，灯光仅照射地面不向上散射</div></li>
+                <li><span class="bullet warm">🎨</span><div>选用2700K以内暖黄光，减少蓝光生态伤害</div></li>
+                <li><span class="bullet warm">⏰</span><div>加装人体感应、定时关灯装置节约光源</div></li>
+                <li><span class="bullet warm">🏡</span><div>夜晚拉紧窗帘，减少室内光线外泄</div></li>
+                <li><span class="bullet warm">📢</span><div>主动宣传暗夜保护，参与光污染防治宣传</div></li>
+            </ul>
+        </div>
+
+        <footer class="footer">
+            光污染科普项目<span class="divider-dot"></span>数据来源：国际暗夜协会 (IDA)<span class="divider-dot"></span>Science · Nature
+            <br>保护暗夜，守护生命的古老节律 🌌
+        </footer>
+    </div>
+
+<script>
+    // Three.js 3D場景
+    (function() {
+        const canvas = document.getElementById('scene3d');
+        const renderer = new THREE.WebGLRenderer({canvas, antialias: true, alpha: true});
+
+        function resize() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const width = Math.min(rect.width - 20, 500);
+            const height = Math.round(width * 0.7);
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            return {width, height};
+        }
+
+        let {width, height} = resize();
+
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x1a1510, 0.02);
+
+        const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        camera.position.set(25, 18, 25);
+        camera.lookAt(0, 0, 0);
+
+        // 燈光組 - 調亮整體照明
+        const lights = {
+            ambient: new THREE.AmbientLight(0x606060, 0.7),
+            moon: new THREE.DirectionalLight(0xe0e8f0, 0.8),
+            cityGlow: new THREE.PointLight(0xffaa66, 0, 50),
+            beachLights: []
+        };
+        scene.add(lights.ambient);
+        scene.add(lights.moon);
+        lights.moon.position.set(-20, 30, -10);
+        scene.add(lights.cityGlow);
+        lights.cityGlow.position.set(-15, 8, 0);
+
+        // 額外補光
+        const fillLight = new THREE.DirectionalLight(0x6688aa, 0.3);
+        fillLight.position.set(20, 20, 20);
+        scene.add(fillLight);
+
+        // 地面組
+        const groundGroup = new THREE.Group();
+        scene.add(groundGroup);
+
+        // 陸地 (左側)
+        const landGeometry = new THREE.BoxGeometry(20, 4, 30);
+        const landMaterial = new THREE.MeshLambertMaterial({color: 0x4a3728});
+        const land = new THREE.Mesh(landGeometry, landMaterial);
+        land.position.set(-15, -2, 0);
+        groundGroup.add(land);
+
+        // 沙灘 (中間)
+        const sandGeometry = new THREE.BoxGeometry(8, 3.5, 30);
+        const sandMaterial = new THREE.MeshLambertMaterial({color: 0xd4c4a0});
+        const sand = new THREE.Mesh(sandGeometry, sandMaterial);
+        sand.position.set(-1, -2.25, 0);
+        groundGroup.add(sand);
+
+        // 海洋 (右側)
+        const oceanGeometry = new THREE.BoxGeometry(25, 3, 30);
+        const oceanMaterial = new THREE.MeshPhongMaterial({
+            color: 0x3d7a9c,
+            transparent: true,
+            opacity: 0.85,
+            shininess: 100
+        });
+        const ocean = new THREE.Mesh(oceanGeometry, oceanMaterial);
+        ocean.position.set(16, -2.5, 0);
+        groundGroup.add(ocean);
+
+        // 海浪動畫平面
+        const waveGeometry = new THREE.PlaneGeometry(23, 28, 20, 20);
+        const waveMaterial = new THREE.MeshPhongMaterial({
+            color: 0x4a8ab0,
+            transparent: true,
+            opacity: 0.5,
+            shininess: 100,
+            side: THREE.DoubleSide
+        });
+        const waves = new THREE.Mesh(waveGeometry, waveMaterial);
+        waves.rotation.x = -Math.PI / 2;
+        waves.position.set(16, -0.8, 0);
+        scene.add(waves);
+
+        // 存儲原始頂點位置
+        const waveVertices = [];
+        const posAttribute = waveGeometry.attributes.position;
+        for (let i = 0; i < posAttribute.count; i++) {
+            waveVertices.push({
+                x: posAttribute.getX(i),
+                y: posAttribute.getY(i),
+                z: posAttribute.getZ(i)
+            });
+        }
+
+        // 居民樓組
+        const buildings = [];
+        const buildingGroup = new THREE.Group();
+        scene.add(buildingGroup);
+
+        const buildingColors = [0x8b7355, 0x6b5344, 0x5a4a3a, 0x7a6a5a];
+        const windowLights = [];
+
+        for (let i = 0; i < 6; i++) {
+            const h = 4 + Math.random() * 6;
+            const w = 2 + Math.random() * 2;
+            const d = 2 + Math.random() * 2;
+            const geo = new THREE.BoxGeometry(w, h, d);
+            const mat = new THREE.MeshLambertMaterial({color: buildingColors[Math.floor(Math.random() * buildingColors.length)]});
+            const building = new THREE.Mesh(geo, mat);
+            building.position.set(
+                -20 + Math.random() * 12,
+                h / 2 - 4,
+                -10 + Math.random() * 20
+            );
+            buildingGroup.add(building);
+            buildings.push(building);
+
+            // 窗戶燈光
+            const floors = Math.floor(h / 1.5);
+            for (let f = 0; f < floors; f++) {
+                if (Math.random() > 0.4) {
+                    const winGeo = new THREE.PlaneGeometry(0.4, 0.6);
+                    const winMat = new THREE.MeshBasicMaterial({color: 0xffdd88});
+                    const win = new THREE.Mesh(winGeo, winMat);
+                    win.position.set(
+                        building.position.x + w/2 + 0.01,
+                        building.position.y - h/2 + 1 + f * 1.2,
+                        building.position.z
+                    );
+                    win.rotation.y = Math.PI / 2;
+                    buildingGroup.add(win);
+                    windowLights.push(win);
+                }
+            }
+        }
+
+        // 周圍的燈
+        const streetLights = [];
+        for (let i = 0; i < 8; i++) {
+            const poleGeo = new THREE.CylinderGeometry(0.1, 0.1, 4, 8);
+            const poleMat = new THREE.MeshLambertMaterial({color: 0x555555});
+            const pole = new THREE.Mesh(poleGeo, poleMat);
+            pole.position.set(
+                -22 + Math.random() * 20,
+                -2,
+                -12 + Math.random() * 24
+            );
+            scene.add(pole);
+
+            const bulbGeo = new THREE.SphereGeometry(0.3, 8, 8);
+            const bulbMat = new THREE.MeshBasicMaterial({color: 0xffaa66});
+            const bulb = new THREE.Mesh(bulbGeo, bulbMat);
+            bulb.position.set(pole.position.x, pole.position.y + 2, pole.position.z);
+            scene.add(bulb);
+
+            const pointLight = new THREE.PointLight(0xffaa66, 0.5, 10);
+            pointLight.position.copy(bulb.position);
+            scene.add(pointLight);
+            streetLights.push({bulb, light: pointLight});
+        }
+
+        // 海邊裝飾燈
+        const beachLights = [];
+        for (let i = 0; i < 5; i++) {
+            const lampGeo = new THREE.SphereGeometry(0.2, 8, 8);
+            const lampMat = new THREE.MeshBasicMaterial({color: 0xffddaa});
+            const lamp = new THREE.Mesh(lampGeo, lampMat);
+            lamp.position.set(
+                -4 + Math.random() * 6,
+                -0.5,
+                -12 + i * 6
+            );
+            scene.add(lamp);
+
+            const pLight = new THREE.PointLight(0xffddaa, 0.3, 5);
+            pLight.position.copy(lamp.position);
+            scene.add(pLight);
+            beachLights.push({lamp, light: pLight});
+        }
+
+        // 植被
+        const trees = [];
+        for (let i = 0; i < 10; i++) {
+            const trunkGeo = new THREE.CylinderGeometry(0.2, 0.3, 1.5, 6);
+            const trunkMat = new THREE.MeshLambertMaterial({color: 0x5a4a3a});
+            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+            trunk.position.set(
+                -22 + Math.random() * 14,
+                -3 + 0.75,
+                -13 + Math.random() * 26
+            );
+            scene.add(trunk);
+
+            const leavesGeo = new THREE.ConeGeometry(1, 2.5, 6);
+            const leavesMat = new THREE.MeshLambertMaterial({color: 0x4a9d5a});
+            const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+            leaves.position.set(trunk.position.x, trunk.position.y + 1.5, trunk.position.z);
+            scene.add(leaves);
+            trees.push({trunk, leaves});
+        }
+
+        // 海龜
+        const turtles = [];
+        for (let i = 0; i < 3; i++) {
+            const turtleGroup = new THREE.Group();
+
+            // 龜殼
+            const shellGeo = new THREE.SphereGeometry(0.8, 12, 8);
+            shellGeo.scale(1, 0.5, 1.3);
+            const shellMat = new THREE.MeshLambertMaterial({color: 0x228b7d});
+            const shell = new THREE.Mesh(shellGeo, shellMat);
+            turtleGroup.add(shell);
+
+            // 頭
+            const headGeo = new THREE.SphereGeometry(0.3, 8, 8);
+            const headMat = new THREE.MeshLambertMaterial({color: 0x2ea896});
+            const head = new THREE.Mesh(headGeo, headMat);
+            head.position.set(0, 0.1, 1);
+            turtleGroup.add(head);
+
+            // 腳
+            for (let j = 0; j < 4; j++) {
+                const flipperGeo = new THREE.BoxGeometry(0.4, 0.1, 0.8);
+                const flipperMat = new THREE.MeshLambertMaterial({color: 0x2ea896});
+                const flipper = new THREE.Mesh(flipperGeo, flipperMat);
+                flipper.position.set(
+                    j < 2 ? -0.5 : 0.5,
+                    0,
+                    j % 2 === 0 ? 0.5 : -0.5
+                );
+                flipper.rotation.y = j < 2 ? 0.3 : -0.3;
+                turtleGroup.add(flipper);
+            }
+
+            turtleGroup.position.set(
+                8 + Math.random() * 8,
+                -1 + Math.random() * 0.5,
+                -8 + Math.random() * 16
+            );
+            turtleGroup.userData = {
+                speed: 0.02 + Math.random() * 0.02,
+                angle: Math.random() * Math.PI * 2,
+                wobble: Math.random() * Math.PI
+            };
+            scene.add(turtleGroup);
+            turtles.push(turtleGroup);
+        }
+
+        // 魚群
+        const fishSchools = [];
+        for (let s = 0; s < 3; s++) {
+            const school = [];
+            const baseX = 10 + Math.random() * 10;
+            const baseZ = -10 + s * 10;
+
+            for (let i = 0; i < 8; i++) {
+                const fishGroup = new THREE.Group();
+
+                const bodyGeo = new THREE.ConeGeometry(0.15, 0.6, 6);
+                bodyGeo.rotateX(Math.PI / 2);
+                const bodyMat = new THREE.MeshLambertMaterial({color: 0x5a9ab5});
+                const body = new THREE.Mesh(bodyGeo, bodyMat);
+                fishGroup.add(body);
+
+                const tailGeo = new THREE.ConeGeometry(0.08, 0.3, 4);
+                tailGeo.rotateX(-Math.PI / 2);
+                const tailMat = new THREE.MeshLambertMaterial({color: 0x4a8aa5});
+                const tail = new THREE.Mesh(tailGeo, tailMat);
+                tail.position.z = -0.4;
+                fishGroup.add(tail);
+
+                fishGroup.position.set(
+                    baseX + (Math.random() - 0.5) * 3,
+                    -1.5 - Math.random() * 1,
+                    baseZ + (Math.random() - 0.5) * 3
+                );
+                fishGroup.userData = {
+                    basePos: fishGroup.position.clone(),
+                    speed: 0.05 + Math.random() * 0.03,
+                    offset: Math.random() * Math.PI * 2,
+                    tail: tail
+                };
+                scene.add(fishGroup);
+                school.push(fishGroup);
+            }
+            fishSchools.push(school);
+        }
+
+        // 光污染光暈效果
+        const glowGeometry = new THREE.SphereGeometry(1, 32, 32);
+        const glowMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffaa66,
+            transparent: true,
+            opacity: 0.1
+        });
+        const glowSphere = new THREE.Mesh(glowGeometry, glowMaterial);
+        glowSphere.position.set(-15, 10, 0);
+        glowSphere.scale.set(20, 15, 20);
+        scene.add(glowSphere);
+
+        // 模式控制
+        let currentMode = 'normal';
+        const modeFactors = {normal: 1.0, severe: 1.8, mitigated: 0.3};
+
+        // 動畫循環
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.016;
+
+            const factor = modeFactors[currentMode];
+
+            // 更新海浪
+            const positions = waves.geometry.attributes.position;
+            for (let i = 0; i < positions.count; i++) {
+                const v = waveVertices[i];
+                const wave1 = Math.sin(v.x * 0.5 + time * 2) * 0.2;
+                const wave2 = Math.cos(v.y * 0.3 + time * 1.5) * 0.15;
+                positions.setZ(i, v.z + wave1 + wave2);
+            }
+            positions.needsUpdate = true;
+
+            // 海龜動畫 - 偏離方向
+            turtles.forEach((turtle, i) => {
+                turtle.userData.angle += 0.01;
+                turtle.userData.wobble += 0.05;
+
+                // 模擬被燈光干擾的偏離路徑
+                const confused = currentMode === 'severe';
+                const dirX = confused ? Math.sin(time + i) * 0.5 : Math.cos(turtle.userData.angle);
+                const dirZ = confused ? Math.cos(time * 0.7 + i) * 0.5 : Math.sin(turtle.userData.angle);
+
+                turtle.position.x += dirX * turtle.userData.speed * (1 + factor * 0.3);
+                turtle.position.z += dirZ * turtle.userData.speed * (1 + factor * 0.3);
+                turtle.rotation.y = -turtle.userData.angle;
+                turtle.position.y = -1 + Math.sin(turtle.userData.wobble) * 0.2;
+
+                // 邊界檢查
+                if (turtle.position.x > 22) turtle.position.x = 5;
+                if (turtle.position.x < 5) turtle.position.x = 22;
+                if (turtle.position.z > 12) turtle.position.z = -12;
+                if (turtle.position.z < -12) turtle.position.z = 12;
+            });
+
+            // 魚群動畫 - 偏離方向的魚群
+            fishSchools.forEach((school, si) => {
+                const confused = currentMode === 'severe';
+                const baseAngle = time * 0.5 + si;
+
+                school.forEach((fish, fi) => {
+                    const offset = fish.userData.offset;
+
+                    if (confused) {
+                        // 魚群分散、方向混亂
+                        fish.position.x = fish.userData.basePos.x + Math.sin(time * 2 + offset) * 4;
+                        fish.position.z = fish.userData.basePos.z + Math.cos(time * 1.5 + offset) * 4;
+                        fish.rotation.y = time * 3 + offset;
+                    } else {
+                        // 正常游動
+                        const schoolX = fish.userData.basePos.x + Math.cos(baseAngle) * 2;
+                        const schoolZ = fish.userData.basePos.z + Math.sin(baseAngle) * 2;
+                        fish.position.x = schoolX + Math.sin(time + offset) * 0.5;
+                        fish.position.z = schoolZ + Math.cos(time + offset) * 0.5;
+                        fish.rotation.y = baseAngle + Math.PI / 2;
+                    }
+
+                    // 尾巴擺動
+                    fish.userData.tail.rotation.y = Math.sin(time * 15 + fi) * 0.3;
+                });
+            });
+
+            // 更新光污染效果
+            glowMaterial.opacity = 0.05 * factor;
+            glowSphere.scale.set(20 * factor, 15 * factor, 20 * factor);
+            lights.cityGlow.intensity = 0.5 * factor;
+
+            // 更新窗戶燈光
+            windowLights.forEach((win, i) => {
+                win.material.color.setHex(factor > 1 ? 0xff9966 : 0xffdd88);
+                win.visible = Math.random() < (0.6 * factor + 0.2);
+            });
+
+            // 街道燈光
+            streetLights.forEach((sl, i) => {
+                sl.light.intensity = 0.5 * factor;
+                sl.bulb.material.color.setHex(factor > 1 ? 0xff8844 : 0xffaa66);
+            });
+
+            // 海邊燈光
+            beachLights.forEach((bl, i) => {
+                bl.light.intensity = 0.3 * factor;
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        // 手機端觸控旋轉控制
+        let camAngle = 0.7; // 初始角度
+        let isDragging = false;
+        let previousX = 0;
+        const cameraRadius = 35;
+
+        function updateCameraPosition() {
+            camera.position.x = Math.cos(camAngle) * cameraRadius;
+            camera.position.z = Math.sin(camAngle) * cameraRadius;
+            camera.lookAt(0, 0, 0);
+        }
+
+        // 設置初始相機位置
+        updateCameraPosition();
+
+        // 鼠標/觸控事件
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            previousX = e.clientX;
+            canvas.style.cursor = 'grabbing';
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const deltaX = e.clientX - previousX;
+            camAngle -= deltaX * 0.01;
+            previousX = e.clientX;
+            updateCameraPosition();
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        // 觸控事件（手機端）
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                previousX = e.touches[0].clientX;
+            }
+        }, {passive: false});
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isDragging || e.touches.length !== 1) return;
+            e.preventDefault();
+            const deltaX = e.touches[0].clientX - previousX;
+            camAngle -= deltaX * 0.015;
+            previousX = e.touches[0].clientX;
+            updateCameraPosition();
+        }, {passive: false});
+
+        canvas.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        canvas.style.cursor = 'grab';
+
+        // 按鈕控制
+        const buttons = document.querySelectorAll('.model-card .btn-sm');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.mode;
+                if (mode && mode !== currentMode) {
+                    currentMode = mode;
+                    buttons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                }
+            });
+        });
+
+        // 響應式調整
+        window.addEventListener('resize', () => {
+            const {width, height} = resize();
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+        });
+
+        animate();
+    })();
+
+    // 摺疊功能
+    document.querySelectorAll('[data-collapsible]').forEach(card => {
+        const btn = card.querySelector('.collapse-btn');
+        btn.addEventListener('click', () => {
+            card.classList.toggle('collapsed');
+            btn.innerHTML = card.classList.contains('collapsed')
+                ? '展開更多 <span class="arrow">▼</span>'
+                : '收起內容 <span class="arrow">▲</span>';
+        });
+    });
+</script>
+</body>
+</html>
